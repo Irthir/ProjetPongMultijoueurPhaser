@@ -1,3 +1,10 @@
+## [0.0.2] - 2021-11-23
+### Ajout
+-Mise en place du réseau.
+-Création d'un serveur node js.
+-Gestion de la connexion des joueurs.
+-Révision du concept du jeu.
+
 ## [0.0.1] - 2021-11-22
 ### Ajout
 -Création du projet phaser.
