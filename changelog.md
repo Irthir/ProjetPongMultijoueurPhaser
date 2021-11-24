@@ -1,3 +1,10 @@
+## [0.0.3] - 2021-11-24
+### Ajout
+-Début du nouveau concept du projet.
+-Recherches sur les méthodes de gestion d'un serveur node js.
+-Préparation de l'export sur glitch.com.
+-Mise en place de la hiérarchie des classes du projet.
+
 ## [0.0.2] - 2021-11-23
 ### Ajout
 -Mise en place du réseau.
