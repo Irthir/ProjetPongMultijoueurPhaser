@@ -1,3 +1,7 @@
+## [0.0.4] - 2021-11-25
+### Ajout
+-Mise en place d'un prototype basé sur l'autorité serveur.
+
 ## [0.0.3] - 2021-11-24
 ### Ajout
 -Début du nouveau concept du projet.
