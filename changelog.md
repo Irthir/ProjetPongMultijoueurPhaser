@@ -1,4 +1,8 @@
-## [0.0.4] - 2021-11-25
+## [0.0.5] - 2021-11-30
+### Modification
+-Correction de la connection et déconnexion des joueurs.
+
+## [0.0.4] - 2021-11-29
 ### Ajout
 -Mise en place d'un prototype basé sur l'autorité serveur.
 

@@ -36,6 +36,10 @@ function create()
       {
         displayPlayers(self, players[id], 'ship');
       }
+      else
+      {
+        displayPlayers(self, players[id], 'otherPlayer');
+      }
     });
   });
 
@@ -44,7 +48,7 @@ function create()
     displayPlayers(self, playerInfo, 'otherPlayer');
   });
 
-  this.socket.on('disconnect', function (playerId)
+  this.socket.on('disconnected', function (playerId)
   {
     self.players.getChildren().forEach(function (player)
     {
@@ -55,10 +59,14 @@ function create()
     });
   });
 
-  this.socket.on('playerUpdates', function (players) {
-    Object.keys(players).forEach(function (id) {
-      self.players.getChildren().forEach(function (player) {
-        if (players[id].playerId === player.playerId) {
+  this.socket.on('playerUpdates', function (players)
+  {
+    Object.keys(players).forEach(function (id)
+    {
+      self.players.getChildren().forEach(function (player)
+      {
+        if (players[id].playerId === player.playerId)
+        {
           player.setRotation(players[id].rotation);
           player.setPosition(players[id].x, players[id].y);
         }
@@ -66,14 +74,19 @@ function create()
     });
   });
 
-  this.socket.on('updateScore', function (scores) {
+  this.socket.on('updateScore', function (scores)
+  {
     self.blueScoreText.setText('Blue: ' + scores.blue);
     self.redScoreText.setText('Red: ' + scores.red);
   });
-  this.socket.on('starLocation', function (starLocation) {
-    if (!self.star) {
+  this.socket.on('starLocation', function (starLocation)
+  {
+    if (!self.star)
+    {
       self.star = self.add.image(starLocation.x, starLocation.y, 'star');
-    } else {
+    }
+    else
+    {
       self.star.setPosition(starLocation.x, starLocation.y);
     }
   });

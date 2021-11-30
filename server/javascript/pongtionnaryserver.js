@@ -47,7 +47,8 @@ function create()
       y: Math.floor(Math.random() * 500) + 50,
       playerId: socket.id,
       team: (Math.floor(Math.random() * 2) == 0) ? 'red' : 'blue',
-      input: {
+      input:
+      {
         left: false,
         right: false,
         up: false
@@ -83,22 +84,28 @@ function create()
     });
   });
 
-  this.scores = {
-    blue: 0,
-    red: 0
+  this.scores =
+  {
+    bleu : 0,
+    rouge : 0,
+    vert : 0,
+    jaune : 0
   };
-  this.star = this.physics.add.image(randomPosition(700), randomPosition(500), 'star');
+  /*this.star = this.physics.add.image(randomPosition(700), randomPosition(500), 'star');
   this.physics.add.collider(this.players);
   this.physics.add.overlap(this.players, this.star, function (star, player) {
-    if (players[player.playerId].team === 'red') {
+    if (players[player.playerId].team === 'red')
+    {
       self.scores.red += 10;
-    } else {
+    }
+    else
+    {
       self.scores.blue += 10;
     }
     self.star.setPosition(randomPosition(700), randomPosition(500));
     io.emit('updateScore', self.scores);
     io.emit('starLocation', { x: self.star.x, y: self.star.y });
-  });
+  });*/
 }
 
 function update()
@@ -106,16 +113,24 @@ function update()
   this.players.getChildren().forEach((player) =>
   {
     const input = players[player.playerId].input;
-    if (input.left) {
+    if (input.left)
+    {
       player.setAngularVelocity(-300);
-    } else if (input.right) {
+    }
+    else if (input.right)
+    {
       player.setAngularVelocity(300);
-    } else {
+    }
+    else
+    {
       player.setAngularVelocity(0);
     }
-    if (input.up) {
+    if (input.up)
+    {
       this.physics.velocityFromRotation(player.rotation + 1.5, 200, player.body.acceleration);
-    } else {
+    }
+    else
+    {
       player.setAcceleration(0);
     }
     players[player.playerId].x = player.x;
