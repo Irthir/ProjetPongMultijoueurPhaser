@@ -11,8 +11,7 @@ const config =
     default: 'arcade',
     arcade:
     {
-      debug: false,
-      gravity: { y: 0 }
+      gravity: false
     }
   },
   scene:
@@ -42,16 +41,15 @@ function create()
     // create a new player and add it to our players object
     players[socket.id] =
     {
-      rotation: 0,
-      x: Math.floor(Math.random() * 700) + 50,
-      y: Math.floor(Math.random() * 500) + 50,
       playerId: socket.id,
-      team: (Math.floor(Math.random() * 2) == 0) ? 'red' : 'blue',
+      team: (countProperties(players) == 0) ? 'rouge' : (countProperties(players) == 1) ? 'bleu' : (countProperties(players) == 2) ? 'vert' : 'jaune',
+      draw=[],
+      path=null,
       input:
       {
-        left: false,
-        right: false,
-        up: false
+        click: false,
+        x : 0,
+        y : 0
       }
     };
     // add player to server
@@ -62,7 +60,7 @@ function create()
     socket.broadcast.emit('newPlayer', players[socket.id]);
 
     // send the star object to the new player
-    socket.emit('starLocation', { x: self.star.x, y: self.star.y });
+    //socket.emit('starLocation', { x: self.star.x, y: self.star.y });
     // send the current scores
     socket.emit('updateScore', self.scores);
 
@@ -79,7 +77,8 @@ function create()
     });
 
     // when a player moves, update the player data
-    socket.on('playerInput', function (inputData) {
+    socket.on('playerInput', function (inputData)
+    {
       handlePlayerInput(self, socket.id, inputData);
     });
   });
@@ -113,25 +112,9 @@ function update()
   this.players.getChildren().forEach((player) =>
   {
     const input = players[player.playerId].input;
-    if (input.left)
+    if (player.path!=null)
     {
-      player.setAngularVelocity(-300);
-    }
-    else if (input.right)
-    {
-      player.setAngularVelocity(300);
-    }
-    else
-    {
-      player.setAngularVelocity(0);
-    }
-    if (input.up)
-    {
-      this.physics.velocityFromRotation(player.rotation + 1.5, 200, player.body.acceleration);
-    }
-    else
-    {
-      player.setAcceleration(0);
+      
     }
     players[player.playerId].x = player.x;
     players[player.playerId].y = player.y;
@@ -176,6 +159,20 @@ function handlePlayerInput(self, playerId, input)
 function randomPosition(max)
 {
   return Math.floor(Math.random() * max) + 50;
+}
+
+function countProperties(obj)
+{
+  var count = 0;
+
+  for(var prop in obj)
+  {
+    if(obj.hasOwnProperty(prop))
+        ++count;
+  }
+
+  console.log(count);
+  return count;
 }
 
 const game = new Phaser.Game(config);

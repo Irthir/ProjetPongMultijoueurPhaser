@@ -26,6 +26,8 @@ function create()
   this.players = this.add.group();
   this.blueScoreText = this.add.text(16, 16, '', { fontSize: '32px', fill: '#0000FF' });
   this.redScoreText = this.add.text(584, 16, '', { fontSize: '32px', fill: '#FF0000' });
+  this.greenScoreText = this.add.text(16, 584, '', { fontSize: '32px', fill: '#00FF00' });
+  this.yellowScoreText = this.add.text(584, 584, '', { fontSize: '32px', fill: '#FFFF00' });
 
 
   this.socket.on('currentPlayers', function (players)
@@ -115,6 +117,7 @@ function update()
     this.leftKeyPressed = false;
     this.rightKeyPressed = false;
   }
+
   if (this.cursors.up.isDown)
   {
     this.upKeyPressed = true;
@@ -123,6 +126,7 @@ function update()
   {
     this.upKeyPressed = false;
   }
+
   if (left !== this.leftKeyPressed || right !== this.rightKeyPressed || up !== this.upKeyPressed)
   {
     this.socket.emit('playerInput', { left: this.leftKeyPressed , right: this.rightKeyPressed, up: this.upKeyPressed });
@@ -132,8 +136,22 @@ function update()
 function displayPlayers(self, playerInfo, sprite)
 {
   const player = self.add.sprite(playerInfo.x, playerInfo.y, sprite).setOrigin(0.5, 0.5).setDisplaySize(53, 40);
-  if (playerInfo.team === 'blue') player.setTint(0x0000ff);
-  else player.setTint(0xff0000);
+  
+  switch(playerInfo.team)
+  {
+    case "rouge" :
+      player.setTint(0xff0000);
+      break;
+    case "bleu" :
+      player.setTint(0x0000ff);
+      break;
+    case "vert" :
+      player.setTint(0x00ff00);
+      break;
+    default :
+      player.setTint(0xffff00);
+      break;
+  }
   player.playerId = playerInfo.playerId;
   self.players.add(player);
 }

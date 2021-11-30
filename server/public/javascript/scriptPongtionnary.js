@@ -232,7 +232,7 @@ function update()
         
         if (Array.isArray(paths))
         {
-            paths.forEach(element => {
+            paths.forEach(element =>{
                 element.destroy();
             });
         }
