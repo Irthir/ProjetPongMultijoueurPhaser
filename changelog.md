@@ -1,3 +1,8 @@
+## [0.0.6] - 2021-12-01
+### Ajout
+-Mise en place de l'hôte distant sur Heroku.
+-Mise en place des rooms pour la gestion des connexions et différenciations de parties.
+
 ## [0.0.5] - 2021-11-30
 ### Modification
 -Correction de la connection et déconnexion des joueurs.

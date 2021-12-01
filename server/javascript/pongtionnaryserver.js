@@ -1,4 +1,5 @@
 const players = {};
+const rooms = [];
 
 const config =
 {
@@ -33,14 +34,29 @@ function create()
 {
   const self = this;
   this.players = this.physics.add.group();
+  if (!this.rooms)
+  {
+    this.rooms = [];
+  }
 
   io.on('connection', function (socket)
   {
-    socket.join("room 1");
+    let sRoom = "";
 
-    if (countProperties(players) >3)
+    for (let index = 0; index < rooms.length; index++)
     {
-      return;
+      const element = rooms[index];
+      if (countPlayerInRoom(self, element)<4)
+      {
+        sRoom = element;
+        break;
+      }
+    }
+
+    if (sRoom == "")
+    {
+      self.rooms.push("room "+self.rooms.length);
+      sRoom = self.rooms[self.rooms.length];
     }
     
     console.log('User connected');
@@ -60,25 +76,26 @@ function create()
         x : 0,
         y : 0
       },
-      room : "room 1"
+      room : sRoom
     };
     // add player to server
     addPlayer(self, players[socket.id]);
     // send the players object to the new player
     socket.emit('currentPlayers', players);
     // update all other players of the new player
-    socket.broadcast.in(players[socket.id].rooms).emit('newPlayer', players[socket.id]);
+    socket.broadcast.emit('newPlayer', players[socket.id]);
 
-    console.log(socket.rooms);
-    console.log(players[socket.id].room);
-    
-    console.log(socket);
+    //setTeam(self,"room 1");
 
-    // send the star object to the new player
-    //socket.emit('starLocation', { x: self.star.x, y: self.star.y });
+    for (let index = 0; index < rooms.length; index++)
+    {
+      const element = array[index];
+
+      console.log ("Players in "+element+" : "+countPlayerInRoom(self, element));
+    }
+
     // send the current scores
     socket.emit('updateScore', self.scores);
-
 
     socket.on('disconnect', function()
     {
@@ -105,21 +122,6 @@ function create()
     vert : 0,
     jaune : 0
   };
-  /*this.star = this.physics.add.image(randomPosition(700), randomPosition(500), 'star');
-  this.physics.add.collider(this.players);
-  this.physics.add.overlap(this.players, this.star, function (star, player) {
-    if (players[player.playerId].team === 'red')
-    {
-      self.scores.red += 10;
-    }
-    else
-    {
-      self.scores.blue += 10;
-    }
-    self.star.setPosition(randomPosition(700), randomPosition(500));
-    io.emit('updateScore', self.scores);
-    io.emit('starLocation', { x: self.star.x, y: self.star.y });
-  });*/
 }
 
 function update()
@@ -183,11 +185,50 @@ function countProperties(obj)
   for(var prop in obj)
   {
     if(obj.hasOwnProperty(prop))
-        ++count;
+      ++count;
   }
 
-  console.log(count);
+  //console.log(count);
   return count;
+}
+
+function countPlayerInRoom(self, sRoom)
+{
+  count = 0;
+  //console.log(players);
+  self.players.getChildren().forEach((player) =>
+  {
+    if (self.players[player.playerId].room == sRoom)
+    {
+      count++;
+    }
+  });
+  //console.log(count);
+  return count;
+}
+
+function setTeam(self, sRoom)
+{
+  sTeam = "";
+  tPlayers = getPlayersInRoom(self, sRoom);
+  
+  console.log(tPlayers);
+
+  return sTeam;
+}
+
+function getPlayersInRoom(self, sRoom)
+{
+  tPlayers = [];
+  self.players.getChildren().forEach((player) =>
+  {
+    console.log(self.players[player.playerId]);
+    if (self.players[player.playerId].room == sRoom)
+    {
+      tPlayers.push(player);
+    }
+  });
+  return tPlayers;
 }
 
 const game = new Phaser.Game(config);
