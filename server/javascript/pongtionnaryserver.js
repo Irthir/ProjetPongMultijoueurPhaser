@@ -36,28 +36,43 @@ function create()
 
   io.on('connection', function (socket)
   {
-    console.log('User connected');
+    socket.join("room 1");
 
+    if (countProperties(players) >3)
+    {
+      return;
+    }
+    
+    console.log('User connected');
     // create a new player and add it to our players object
     players[socket.id] =
     {
+      rotation: 0,
+      x: Math.floor(Math.random() * 700) + 50,
+      y: Math.floor(Math.random() * 500) + 50,
       playerId: socket.id,
       team: (countProperties(players) == 0) ? 'rouge' : (countProperties(players) == 1) ? 'bleu' : (countProperties(players) == 2) ? 'vert' : 'jaune',
-      draw=[],
-      path=null,
+      draw : [],
+      path : null,
       input:
       {
         click: false,
         x : 0,
         y : 0
-      }
+      },
+      room : "room 1"
     };
     // add player to server
     addPlayer(self, players[socket.id]);
     // send the players object to the new player
     socket.emit('currentPlayers', players);
     // update all other players of the new player
-    socket.broadcast.emit('newPlayer', players[socket.id]);
+    socket.broadcast.in(players[socket.id].rooms).emit('newPlayer', players[socket.id]);
+
+    console.log(socket.rooms);
+    console.log(players[socket.id].room);
+    
+    console.log(socket);
 
     // send the star object to the new player
     //socket.emit('starLocation', { x: self.star.x, y: self.star.y });
