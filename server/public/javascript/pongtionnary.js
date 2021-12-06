@@ -4,6 +4,12 @@ const config =
   parent: 'game',
   width: 800,
   height: 800,
+  physics : {
+    default: 'arcade',
+    arcade: {
+      gravity: false
+    }
+  },
   scene:
   {
     preload: preload,
@@ -17,6 +23,7 @@ function preload()
   this.load.image('ship', 'asset/Nanoja.png');
   this.load.image('otherPlayer', 'asset/colibri.png');
   this.load.image('star', 'asset/Champagne.png');
+  this.load.image('Path','pong/asset/sprite/Path.png');
 }
 
 function create()
@@ -28,6 +35,7 @@ function create()
   this.redScoreText = this.add.text(584, 16, '', { fontSize: '32px', fill: '#FF0000' });
   this.greenScoreText = this.add.text(16, 584, '', { fontSize: '32px', fill: '#00FF00' });
   this.yellowScoreText = this.add.text(584, 584, '', { fontSize: '32px', fill: '#FFFF00' });
+  var room = "";
 
 
   this.socket.on('currentPlayers', function (players)
@@ -37,8 +45,13 @@ function create()
       if (players[id].playerId === self.socket.id)
       {
         displayPlayers(self, players[id], 'ship');
+        room = players[id].room;
       }
-      else
+    });
+
+    Object.keys(players).forEach(function (id)//Optimisable côté serveur
+    {
+      if (players[id].playerId != self.socket.id && players[id].room==room)
       {
         displayPlayers(self, players[id], 'otherPlayer');
       }
@@ -47,7 +60,12 @@ function create()
 
   this.socket.on('newPlayer', function (playerInfo)
   {
-    displayPlayers(self, playerInfo, 'otherPlayer');
+    console.log(playerInfo.room);
+    console.log(room);
+    if (playerInfo.room == room) //Optimisable côté serveur
+    {
+      displayPlayers(self, playerInfo, 'otherPlayer');
+    }
   });
 
   this.socket.on('disconnected', function (playerId)
@@ -93,43 +111,54 @@ function create()
     }
   });
 
+  this.socket.on('inputPlayer', function(player)
+  {
+    displayDraw(self, player);
+  });
+
   this.cursors = this.input.keyboard.createCursorKeys();
-  this.leftKeyPressed = false;
-  this.rightKeyPressed = false;
-  this.upKeyPressed = false;
+  this.isDrawing = false;
 }
 
+let prevX;
+let prevY;
+let path=null;
+let lengthPath = 0;
 function update()
 {
-  const left = this.leftKeyPressed;
-  const right = this.rightKeyPressed;
-  const up = this.upKeyPressed;
-  if (this.cursors.left.isDown)
+
+  if (!this.input.activePointer.isDown)
   {
-    this.leftKeyPressed = true;
-  }
-  else if (this.cursors.right.isDown)
-  {
-    this.rightKeyPressed = true;
+      this.isDrawing = false;
   }
   else
   {
-    this.leftKeyPressed = false;
-    this.rightKeyPressed = false;
-  }
+    if (!this.isDrawing)
+    {
+      prevX = this.input.activePointer.position.x;
+      prevY = this.input.activePointer.position.y;
+      if (!path)
+        path = new Phaser.Curves.Path(this.input.activePointer.position.x, this.input.activePointer.position.y);
+      this.isDrawing = true;
+    }
+    else
+    {
+      if (((this.input.activePointer.position.x)!= prevX || (this.input.activePointer.position.y)!=prevY) && path.curves.length<30)
+      {
+        path.lineTo(this.input.activePointer.position.x, this.input.activePointer.position.y);
+        prevX = this.input.activePointer.position.x;
+        prevY = this.input.activePointer.position.y;
+      }
 
-  if (this.cursors.up.isDown)
-  {
-    this.upKeyPressed = true;
-  }
-  else
-  {
-    this.upKeyPressed = false;
-  }
+      if (lengthPath!=path.curves.length)
+      {
+        this.socket.emit('playerInput', path);
+        lengthPath=path.curves.length;
+      }
+    }
 
-  if (left !== this.leftKeyPressed || right !== this.rightKeyPressed || up !== this.upKeyPressed)
-  {
-    this.socket.emit('playerInput', { left: this.leftKeyPressed , right: this.rightKeyPressed, up: this.upKeyPressed });
+
+    //console.log(path.curves.length);
   }
 }
 
@@ -154,6 +183,33 @@ function displayPlayers(self, playerInfo, sprite)
   }
   player.playerId = playerInfo.playerId;
   self.players.add(player);
+}
+
+function displayDraw(self, player)
+{
+  /*if (room == self.room)
+  {*/
+    if (Array.isArray(player.draw))
+    {
+      player.draw.forEach(element =>{
+        element.destroy();
+      });
+    }
+  
+    console.log(player.path.curves.length);
+    player.path.curves.forEach(element =>
+    {
+      console.log("x "+element.points[0]+" y "+element.points[1]);
+      pathling = self.physics.add.sprite(
+        element.points[0],element.points[1],
+        'Path');
+      pathling.setCollideWorldBounds(true);
+      pathling.setImmovable(true);
+      if (!player.draw)
+        player.draw = [];
+      player.draw.push(pathling);
+    });
+  //}
 }
 
 

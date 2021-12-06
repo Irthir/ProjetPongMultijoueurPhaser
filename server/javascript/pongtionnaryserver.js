@@ -33,19 +33,19 @@ function preload()
 function create()
 {
   const self = this;
-  this.players = this.physics.add.group();
-  if (!this.rooms)
+  self.players = self.physics.add.group();
+  if (!self.rooms)
   {
-    this.rooms = [];
+    self.rooms = [];
   }
 
   io.on('connection', function (socket)
   {
-    let sRoom = "";
+    var sRoom = "";
 
-    for (let index = 0; index < rooms.length; index++)
+    for (let index = 0; index < self.rooms.length; index++)
     {
-      const element = rooms[index];
+      const element = self.rooms[index];
       if (countPlayerInRoom(self, element)<4)
       {
         sRoom = element;
@@ -56,7 +56,7 @@ function create()
     if (sRoom == "")
     {
       self.rooms.push("room "+self.rooms.length);
-      sRoom = self.rooms[self.rooms.length];
+      sRoom = self.rooms[self.rooms.length-1];
     }
     
     console.log('User connected');
@@ -65,17 +65,11 @@ function create()
     {
       rotation: 0,
       x: Math.floor(Math.random() * 700) + 50,
-      y: Math.floor(Math.random() * 500) + 50,
+      y: Math.floor(Math.random() * 700) + 50,
       playerId: socket.id,
-      team: (countProperties(players) == 0) ? 'rouge' : (countProperties(players) == 1) ? 'bleu' : (countProperties(players) == 2) ? 'vert' : 'jaune',
+      team: (countPlayerInRoom(self,sRoom) == 0) ? 'rouge' : (countPlayerInRoom(self,sRoom) == 1) ? 'bleu' : (countPlayerInRoom(self,sRoom) == 2) ? 'vert' : 'jaune',
       draw : [],
       path : null,
-      input:
-      {
-        click: false,
-        x : 0,
-        y : 0
-      },
       room : sRoom
     };
     // add player to server
@@ -85,11 +79,9 @@ function create()
     // update all other players of the new player
     socket.broadcast.emit('newPlayer', players[socket.id]);
 
-    //setTeam(self,"room 1");
-
-    for (let index = 0; index < rooms.length; index++)
+    for (let index = 0; index < self.rooms.length; index++)
     {
-      const element = array[index];
+      const element = self.rooms[index];
 
       console.log ("Players in "+element+" : "+countPlayerInRoom(self, element));
     }
@@ -113,6 +105,7 @@ function create()
     {
       handlePlayerInput(self, socket.id, inputData);
     });
+
   });
 
   this.scores =
@@ -168,7 +161,31 @@ function handlePlayerInput(self, playerId, input)
   {
     if (playerId === player.playerId)
     {
-      players[player.playerId].input = input;
+      players[player.playerId].path = input;
+      
+      io.emit('inputPlayer', players[player.playerId]);
+
+      if (Array.isArray(player.draw))
+      {
+        player.draw.forEach(element =>{
+          element.destroy();
+        });
+      }
+
+      console.log(input.curves.length);
+      players[player.playerId].path.curves.forEach(element =>
+      {
+        console.log("x "+element.points[0]+" y "+element.points[1]);
+        pathling = self.physics.add.sprite(
+          element.points[0],element.points[1],
+          'Path');
+        pathling.setCollideWorldBounds(true);
+        pathling.setImmovable(true);
+        if (!player.draw)
+          player.draw = [];
+        player.draw.push(pathling);
+        //self.physics.add.collider(ball, pathling);
+      });
     }
   });
 }
@@ -198,7 +215,7 @@ function countPlayerInRoom(self, sRoom)
   //console.log(players);
   self.players.getChildren().forEach((player) =>
   {
-    if (self.players[player.playerId].room == sRoom)
+    if (players[player.playerId].room == sRoom)
     {
       count++;
     }
@@ -207,23 +224,12 @@ function countPlayerInRoom(self, sRoom)
   return count;
 }
 
-function setTeam(self, sRoom)
-{
-  sTeam = "";
-  tPlayers = getPlayersInRoom(self, sRoom);
-  
-  console.log(tPlayers);
-
-  return sTeam;
-}
-
 function getPlayersInRoom(self, sRoom)
 {
   tPlayers = [];
   self.players.getChildren().forEach((player) =>
   {
-    console.log(self.players[player.playerId]);
-    if (self.players[player.playerId].room == sRoom)
+    if (players[player.playerId].room == sRoom)
     {
       tPlayers.push(player);
     }

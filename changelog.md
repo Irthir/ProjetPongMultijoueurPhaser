@@ -1,3 +1,7 @@
+## [0.0.7] - 2021-12-06
+### Ajout
+-Avancée sur les rooms et la mise en place des apparitions sur serveur et client.
+
 ## [0.0.6] - 2021-12-01
 ### Ajout
 -Mise en place de l'hôte distant sur Heroku.
