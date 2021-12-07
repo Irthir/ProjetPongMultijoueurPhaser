@@ -4,6 +4,9 @@ const config =
   parent: 'game',
   width: 800,
   height: 800,
+  scale: {
+    autoCenter: Phaser.Scale.CENTER_BOTH
+  },
   physics : {
     default: 'arcade',
     arcade: {
@@ -16,14 +19,15 @@ const config =
     create: create,
     update: update
   }
-};
+}; 
+var room = "";
 
 function preload()
 {
   this.load.image('ship', 'asset/Nanoja.png');
   this.load.image('otherPlayer', 'asset/colibri.png');
-  this.load.image('star', 'asset/Champagne.png');
   this.load.image('Path','pong/asset/sprite/Path.png');
+  this.load.image('Ball','pong/asset/sprite/Ball.png');
 }
 
 function create()
@@ -35,8 +39,11 @@ function create()
   this.redScoreText = this.add.text(584, 16, '', { fontSize: '32px', fill: '#FF0000' });
   this.greenScoreText = this.add.text(16, 584, '', { fontSize: '32px', fill: '#00FF00' });
   this.yellowScoreText = this.add.text(584, 584, '', { fontSize: '32px', fill: '#FFFF00' });
-  var room = "";
 
+  var ball = this.physics.add.sprite(
+    this.physics.world.bounds.width/2,
+    this.physics.world.bounds.height/2,
+    'Ball');
 
   this.socket.on('currentPlayers', function (players)
   {
@@ -46,6 +53,7 @@ function create()
       {
         displayPlayers(self, players[id], 'ship');
         room = players[id].room;
+        displayDraw(self,players[id]);
       }
     });
 
@@ -54,14 +62,15 @@ function create()
       if (players[id].playerId != self.socket.id && players[id].room==room)
       {
         displayPlayers(self, players[id], 'otherPlayer');
+        displayDraw(self,players[id]);
       }
     });
   });
 
   this.socket.on('newPlayer', function (playerInfo)
   {
-    console.log(playerInfo.room);
-    console.log(room);
+    //console.log(playerInfo.room);
+    //console.log(room);
     if (playerInfo.room == room) //Optimisable côté serveur
     {
       displayPlayers(self, playerInfo, 'otherPlayer');
@@ -79,36 +88,18 @@ function create()
     });
   });
 
-  this.socket.on('playerUpdates', function (players)
-  {
-    Object.keys(players).forEach(function (id)
-    {
-      self.players.getChildren().forEach(function (player)
-      {
-        if (players[id].playerId === player.playerId)
-        {
-          player.setRotation(players[id].rotation);
-          player.setPosition(players[id].x, players[id].y);
-        }
-      });
-    });
+  this.socket.on('ballUpdate', function (serverball, serverroom)
+  {      
+    //console.log(serverroom);
+    //console.log(serverball);
+    if (serverroom==room)
+      ball.setPosition(serverball.x,serverball.y);
   });
 
   this.socket.on('updateScore', function (scores)
   {
     self.blueScoreText.setText('Blue: ' + scores.blue);
     self.redScoreText.setText('Red: ' + scores.red);
-  });
-  this.socket.on('starLocation', function (starLocation)
-  {
-    if (!self.star)
-    {
-      self.star = self.add.image(starLocation.x, starLocation.y, 'star');
-    }
-    else
-    {
-      self.star.setPosition(starLocation.x, starLocation.y);
-    }
   });
 
   this.socket.on('inputPlayer', function(player)
@@ -187,29 +178,49 @@ function displayPlayers(self, playerInfo, sprite)
 
 function displayDraw(self, player)
 {
-  /*if (room == self.room)
-  {*/
-    if (Array.isArray(player.draw))
+  var selfy = this;
+  //console.log(player.room);
+  //console.log(selfy.room);
+  if (player.room == selfy.room)
+  {
+    if (player.path)
     {
-      player.draw.forEach(element =>{
-        element.destroy();
+      //console.log(player.path.curves.length);
+      player.path.curves.forEach(element =>
+      {
+        //console.log("x "+element.points[0]+" y "+element.points[1]);
+        pathling = self.physics.add.sprite(
+          element.points[0],element.points[1],
+          'Path');
+        pathling.setCollideWorldBounds(true);
+        pathling.setImmovable(true);
+        if (!player.draw)
+          player.draw = [];
+        player.draw.push(pathling);
+
+        switch(player.team)
+        {
+          case "rouge" :
+            pathling.setTint(0xff0000);
+            break;
+          case "bleu" :
+            pathling.setTint(0x0000ff);
+            break;
+          case "vert" :
+            pathling.setTint(0x00ff00);
+            break;
+          default :
+            pathling.setTint(0xffff00);
+            break;
+        }
       });
     }
-  
-    console.log(player.path.curves.length);
-    player.path.curves.forEach(element =>
-    {
-      console.log("x "+element.points[0]+" y "+element.points[1]);
-      pathling = self.physics.add.sprite(
-        element.points[0],element.points[1],
-        'Path');
-      pathling.setCollideWorldBounds(true);
-      pathling.setImmovable(true);
-      if (!player.draw)
-        player.draw = [];
-      player.draw.push(pathling);
-    });
-  //}
+  }
+}
+
+window.onbeforeunload = function()
+{
+  this.socket.emit('disconnect');
 }
 
 

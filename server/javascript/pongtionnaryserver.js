@@ -1,5 +1,6 @@
 const players = {};
 const rooms = [];
+const balls = [];
 
 const config =
 {
@@ -27,7 +28,7 @@ const config =
 function preload()
 {
   this.load.image('ship', 'asset/Nanoja.png');
-  this.load.image('star', 'asset/Champagne.png');
+  this.load.image('Ball','asset/sprite/Ball.png');
 }
 
 function create()
@@ -43,9 +44,11 @@ function create()
   {
     var sRoom = "";
 
+    console.log(self.rooms.length);
     for (let index = 0; index < self.rooms.length; index++)
     {
       const element = self.rooms[index];
+      console.log(countPlayerInRoom(self, element));
       if (countPlayerInRoom(self, element)<4)
       {
         sRoom = element;
@@ -55,10 +58,18 @@ function create()
 
     if (sRoom == "")
     {
-      self.rooms.push("room "+self.rooms.length);
+      self.rooms.push("room"+self.rooms.length);
       sRoom = self.rooms[self.rooms.length-1];
+      //Mise en place de la balle
+      ball = self.physics.add.sprite(
+        self.physics.world.bounds.width/2,
+        self.physics.world.bounds.height/2,
+          'Ball');
+      balls[sRoom] = ball;
+      balls[sRoom].setCollideWorldBounds(true);
+      balls[sRoom].setBounce(1,1);
     }
-    
+    console.log(self.rooms);
     console.log('User connected');
     // create a new player and add it to our players object
     players[socket.id] =
@@ -67,7 +78,7 @@ function create()
       x: Math.floor(Math.random() * 700) + 50,
       y: Math.floor(Math.random() * 700) + 50,
       playerId: socket.id,
-      team: (countPlayerInRoom(self,sRoom) == 0) ? 'rouge' : (countPlayerInRoom(self,sRoom) == 1) ? 'bleu' : (countPlayerInRoom(self,sRoom) == 2) ? 'vert' : 'jaune',
+      team: getValidTeamName(self,sRoom),
       draw : [],
       path : null,
       room : sRoom
@@ -119,19 +130,35 @@ function create()
 
 function update()
 {
-  this.players.getChildren().forEach((player) =>
+  const self = this;
+  //console.log (self.rooms);
+  for (let index = 0; index < self.rooms.length; index++)
   {
-    const input = players[player.playerId].input;
-    if (player.path!=null)
+    const room = self.rooms[index];
+    //console.log(balls[room].body.velocity);
+    if (balls[room].body.velocity.x==0 || balls[room].body.velocity.y==0)
     {
-      
+      let nDirX = 1;
+      if (Math.random()>0.5)
+      {
+          nDirX = -1;
+      }
+      let nDirY = 1;
+      if (Math.random()>0.5)
+      {
+          nDirY = -1;
+      }
+      //Initialisation de la balle.
+      //console.log (balls);
+      const initialVelocityX = ((Math.random() *150)+100)*nDirX;
+      const initialVelocityY = ((Math.random() *150)+100)*nDirY;
+      balls[room].setVelocityX(initialVelocityX);
+      balls[room].setVelocityY(initialVelocityY);
     }
-    players[player.playerId].x = player.x;
-    players[player.playerId].y = player.y;
-    players[player.playerId].rotation = player.rotation;
-  });
-  this.physics.world.wrap(this.players, 5);
-  io.emit('playerUpdates', players);
+    io.emit('ballUpdate', balls[room],room);
+  }
+ 
+  //console.log(balls);
 }
 
 function addPlayer(self, playerInfo)
@@ -172,22 +199,37 @@ function handlePlayerInput(self, playerId, input)
         });
       }
 
-      console.log(input.curves.length);
+      //console.log(input.curves.length);
       players[player.playerId].path.curves.forEach(element =>
       {
-        console.log("x "+element.points[0]+" y "+element.points[1]);
+        //console.log("x "+element.points[0]+" y "+element.points[1]);
         pathling = self.physics.add.sprite(
           element.points[0],element.points[1],
           'Path');
         pathling.setCollideWorldBounds(true);
         pathling.setImmovable(true);
-        if (!player.draw)
-          player.draw = [];
-        player.draw.push(pathling);
-        //self.physics.add.collider(ball, pathling);
+        if (!players[player.playerId].draw)
+          players[player.playerId].draw = [];
+        players[player.playerId].draw.push(pathling);
+        pathling.name = player.playerId;
+
+        self.physics.add.collider(balls[players[player.playerId].room], pathling, function(ball,pathling)
+        {
+          //console.log(players[pathling.name].draw);
+          players[pathling.name].draw.forEach(element =>
+          {
+            element.destroy(true);  
+          });
+        });
       });
     }
   });
+}
+
+function collision(player)
+{
+  console.log("proute");
+  console.log(player);
 }
 
 function randomPosition(max)
@@ -235,6 +277,21 @@ function getPlayersInRoom(self, sRoom)
     }
   });
   return tPlayers;
+}
+
+function getValidTeamName(self, sRoom)
+{
+  team = ["rouge","bleu","vert","jaune"];
+  self.players.getChildren().forEach((player) =>
+  {
+    if (players[player.playerId].room == sRoom)
+    {
+      let i = team.indexOf(players[player.playerId].team);
+      team.splice(i,1);
+    }
+  });
+  team.push("noir");
+  return team[0];
 }
 
 const game = new Phaser.Game(config);

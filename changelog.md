@@ -1,3 +1,10 @@
+## [0.0.8] - 2021-12-07
+
+### À Faire
+-Gérer la destruction des dessins.
+-Mettre en place l'affichage joueur.
+-Finaliser la boucle de jeu.
+
 ## [0.0.7] - 2021-12-06
 ### Ajout
 -Avancée sur les rooms et la mise en place des apparitions sur serveur et client.
