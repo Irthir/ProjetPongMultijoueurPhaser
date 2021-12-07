@@ -21,6 +21,12 @@ const config =
   }
 }; 
 var room = "";
+var pathlings = [];
+
+let prevX;
+let prevY;
+let path=null;
+let lengthPath = 0;
 
 function preload()
 {
@@ -35,10 +41,10 @@ function create()
   var self = this;
   this.socket = io();
   this.players = this.add.group();
-  this.blueScoreText = this.add.text(16, 16, '', { fontSize: '32px', fill: '#0000FF' });
-  this.redScoreText = this.add.text(584, 16, '', { fontSize: '32px', fill: '#FF0000' });
-  this.greenScoreText = this.add.text(16, 584, '', { fontSize: '32px', fill: '#00FF00' });
-  this.yellowScoreText = this.add.text(584, 584, '', { fontSize: '32px', fill: '#FFFF00' });
+  this.blueScoreText = this.add.text(16, 384, '00', { fontSize: '32px', fill: '#0000FF' });
+  this.redScoreText = this.add.text(768, 384, '00', { fontSize: '32px', fill: '#FF0000' });
+  this.greenScoreText = this.add.text(384, 16, '00', { fontSize: '32px', fill: '#00FF00' });
+  this.yellowScoreText = this.add.text(384, 768, '00', { fontSize: '32px', fill: '#FFFF00' });
 
   var ball = this.physics.add.sprite(
     this.physics.world.bounds.width/2,
@@ -51,7 +57,7 @@ function create()
     {
       if (players[id].playerId === self.socket.id)
       {
-        displayPlayers(self, players[id], 'ship');
+        //displayPlayers(self, players[id], 'ship');
         room = players[id].room;
         displayDraw(self,players[id]);
       }
@@ -61,7 +67,7 @@ function create()
     {
       if (players[id].playerId != self.socket.id && players[id].room==room)
       {
-        displayPlayers(self, players[id], 'otherPlayer');
+        //displayPlayers(self, players[id], 'otherPlayer');
         displayDraw(self,players[id]);
       }
     });
@@ -71,10 +77,10 @@ function create()
   {
     //console.log(playerInfo.room);
     //console.log(room);
-    if (playerInfo.room == room) //Optimisable côté serveur
+    /*if (playerInfo.room == room) //Optimisable côté serveur
     {
       displayPlayers(self, playerInfo, 'otherPlayer');
-    }
+    }*/
   });
 
   this.socket.on('disconnected', function (playerId)
@@ -98,8 +104,10 @@ function create()
 
   this.socket.on('updateScore', function (scores)
   {
-    self.blueScoreText.setText('Blue: ' + scores.blue);
-    self.redScoreText.setText('Red: ' + scores.red);
+    self.blueScoreText.setText(scores.bleu);
+    self.redScoreText.setText(scores.rouge);
+    self.greenScoreText.setText(scores.vert);
+    self.yellowScoreText.setText(scores.jaune);
   });
 
   this.socket.on('inputPlayer', function(player)
@@ -107,20 +115,29 @@ function create()
     displayDraw(self, player);
   });
 
+  this.socket.on('destroyPath', function(id)
+  {
+    pathlings.forEach(element => {
+      if (element.name == id)
+      {
+        element.destroy(true);
+      }
+    });
+    if (id == self.socket.id)
+    {
+      path = null;
+    }
+  });
+
   this.cursors = this.input.keyboard.createCursorKeys();
   this.isDrawing = false;
 }
 
-let prevX;
-let prevY;
-let path=null;
-let lengthPath = 0;
 function update()
 {
-
   if (!this.input.activePointer.isDown)
   {
-      this.isDrawing = false;
+    this.isDrawing = false;
   }
   else
   {
@@ -134,6 +151,9 @@ function update()
     }
     else
     {
+      if (!path)
+        path = new Phaser.Curves.Path(this.input.activePointer.position.x, this.input.activePointer.position.y);
+      
       if (((this.input.activePointer.position.x)!= prevX || (this.input.activePointer.position.y)!=prevY) && path.curves.length<30)
       {
         path.lineTo(this.input.activePointer.position.x, this.input.activePointer.position.y);
@@ -147,8 +167,6 @@ function update()
         lengthPath=path.curves.length;
       }
     }
-
-
     //console.log(path.curves.length);
   }
 }
@@ -189,11 +207,12 @@ function displayDraw(self, player)
       player.path.curves.forEach(element =>
       {
         //console.log("x "+element.points[0]+" y "+element.points[1]);
-        pathling = self.physics.add.sprite(
+        let pathling = self.physics.add.sprite(
           element.points[0],element.points[1],
           'Path');
         pathling.setCollideWorldBounds(true);
         pathling.setImmovable(true);
+        pathling.setName(player.playerId);
         if (!player.draw)
           player.draw = [];
         player.draw.push(pathling);
@@ -213,6 +232,8 @@ function displayDraw(self, player)
             pathling.setTint(0xffff00);
             break;
         }
+
+        pathlings.push(pathling);
       });
     }
   }

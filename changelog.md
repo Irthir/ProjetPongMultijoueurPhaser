@@ -3,7 +3,7 @@
 ### À Faire
 -Gérer la destruction des dessins.
 -Mettre en place l'affichage joueur.
--Finaliser la boucle de jeu.
+-Finaliser la boucle
 
 ## [0.0.7] - 2021-12-06
 ### Ajout

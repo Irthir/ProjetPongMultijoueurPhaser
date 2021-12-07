@@ -67,8 +67,14 @@ function create()
           'Ball');
       balls[sRoom] = ball;
       balls[sRoom].setCollideWorldBounds(true);
-      balls[sRoom].setBounce(1,1);
+      balls[sRoom].setBounce(1.01,1.01);
     }
+
+    self.physics.world.on('worldbounds', (body, up, down, left, right)=>
+    {
+      console.log
+    });
+
     console.log(self.rooms);
     console.log('User connected');
     // create a new player and add it to our players object
@@ -215,21 +221,21 @@ function handlePlayerInput(self, playerId, input)
 
         self.physics.add.collider(balls[players[player.playerId].room], pathling, function(ball,pathling)
         {
-          //console.log(players[pathling.name].draw);
-          players[pathling.name].draw.forEach(element =>
+          if (players[pathling.name]!=null)
           {
-            element.destroy(true);  
-          });
+            players[pathling.name].draw.forEach(element =>
+            {
+              element.destroy(true);  
+            });
+            players[pathling.name].draw=[];
+            players[pathling.name].path = null;
+          
+            io.emit('destroyPath', pathling.name);
+          }
         });
       });
     }
   });
-}
-
-function collision(player)
-{
-  console.log("proute");
-  console.log(player);
 }
 
 function randomPosition(max)
