@@ -1,5 +1,8 @@
 ## [0.0.8] - 2021-12-07
-
+### Ajout
+-Mise en place de l'affichage des dessins chez tout le monde
+-Gestion de la destruction des dessins
+-Gestion des couleurs des joueurs.
 ### À Faire
 -Gérer la destruction des dessins.
 -Mettre en place l'affichage joueur.

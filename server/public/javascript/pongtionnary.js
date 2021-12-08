@@ -111,7 +111,7 @@ function create()
       self.greenScoreText.setText(scores.vert);
       self.yellowScoreText.setText(scores.jaune);
     }
-    else
+    else if (sRoom == room)
     {
       self.blueScoreText.setText("0");
       self.redScoreText.setText("0");
