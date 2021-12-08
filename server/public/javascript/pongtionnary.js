@@ -104,7 +104,7 @@ function create()
 
   this.socket.on('updateScore', function (scores, sRoom)
   {
-    if (sRoom == room && scores!=null)
+    if (sRoom == room && scores!=null && scores.bleu!=null && scores.rouge!=null && scores.vert!=null && scores.jaune!=null)
     {
       self.blueScoreText.setText(scores.bleu);
       self.redScoreText.setText(scores.rouge);
