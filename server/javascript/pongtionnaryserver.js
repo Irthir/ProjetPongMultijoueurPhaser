@@ -67,13 +67,17 @@ function create()
           'Ball');
       balls[sRoom] = ball;
       balls[sRoom].setCollideWorldBounds(true);
-      balls[sRoom].setBounce(1.01,1.01);
+      //balls[sRoom].setBounce(1.01,1.01);
+      balls[sRoom].setBounce(1,1);
+
+      balls[sRoom].body.checkWorldBounds();
+      self.physics.world.on('worldbounds', (body, up, down, left, right)=>
+      {
+        console.log("Patate");
+      });
     }
 
-    self.physics.world.on('worldbounds', (body, up, down, left, right)=>
-    {
-      console.log
-    });
+    
 
     console.log(self.rooms);
     console.log('User connected');
