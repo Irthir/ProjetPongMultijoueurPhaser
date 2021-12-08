@@ -1,6 +1,7 @@
 const players = {};
 const rooms = [];
 const balls = [];
+const scores = [];
 
 const config =
 {
@@ -69,11 +70,51 @@ function create()
       balls[sRoom].setCollideWorldBounds(true);
       //balls[sRoom].setBounce(1.01,1.01);
       balls[sRoom].setBounce(1,1);
+      balls[sRoom].body.name = sRoom;
 
-      balls[sRoom].body.checkWorldBounds();
+      scores[sRoom] =
+      {
+        bleu : 0,
+        rouge : 0,
+        vert : 0,
+        jaune : 0
+      };
+
+      balls[sRoom].body.onWorldBounds=true;
       self.physics.world.on('worldbounds', (body, up, down, left, right)=>
       {
-        console.log("Patate");
+        /*console.log(body.name);
+        console.log(up); //Vert
+        console.log(down); //Jaune
+        console.log(left); //Bleu
+        console.log(right); //Rouge*/
+
+        if (up)
+        {
+          scores[sRoom].bleu++;
+          scores[sRoom].rouge++;
+          scores[sRoom].jaune++;
+        }
+        else if (down)
+        {
+          scores[sRoom].bleu++;
+          scores[sRoom].rouge++;
+          scores[sRoom].vert++;
+        }
+        else if (left)
+        {
+          scores[sRoom].rouge++;
+          scores[sRoom].jaune++;
+          scores[sRoom].vert++;
+        }
+        else if (right)
+        {
+          scores[sRoom].bleu++;
+          scores[sRoom].jaune++;
+          scores[sRoom].vert++;
+        }
+
+        socket.emit('updateScore', scores[sRoom], sRoom);
       });
     }
 
@@ -108,7 +149,7 @@ function create()
     }
 
     // send the current scores
-    socket.emit('updateScore', self.scores);
+    socket.emit('updateScore', scores, sRoom);
 
     socket.on('disconnect', function()
     {
@@ -128,14 +169,6 @@ function create()
     });
 
   });
-
-  this.scores =
-  {
-    bleu : 0,
-    rouge : 0,
-    vert : 0,
-    jaune : 0
-  };
 }
 
 function update()

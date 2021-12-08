@@ -42,7 +42,7 @@ function create()
   this.socket = io();
   this.players = this.add.group();
   this.blueScoreText = this.add.text(16, 384, '00', { fontSize: '32px', fill: '#0000FF' });
-  this.redScoreText = this.add.text(768, 384, '00', { fontSize: '32px', fill: '#FF0000' });
+  this.redScoreText = this.add.text(736, 384, '00', { fontSize: '32px', fill: '#FF0000' });
   this.greenScoreText = this.add.text(384, 16, '00', { fontSize: '32px', fill: '#00FF00' });
   this.yellowScoreText = this.add.text(384, 768, '00', { fontSize: '32px', fill: '#FFFF00' });
 
@@ -102,12 +102,15 @@ function create()
       ball.setPosition(serverball.x,serverball.y);
   });
 
-  this.socket.on('updateScore', function (scores)
+  this.socket.on('updateScore', function (scores, sRoom)
   {
-    self.blueScoreText.setText(scores.bleu);
-    self.redScoreText.setText(scores.rouge);
-    self.greenScoreText.setText(scores.vert);
-    self.yellowScoreText.setText(scores.jaune);
+    if (sRoom == room && scores!=null)
+    {
+      self.blueScoreText.setText(scores.bleu);
+      self.redScoreText.setText(scores.rouge);
+      self.greenScoreText.setText(scores.vert);
+      self.yellowScoreText.setText(scores.jaune);
+    }
   });
 
   this.socket.on('inputPlayer', function(player)
