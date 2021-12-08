@@ -114,7 +114,7 @@ function create()
           scores[sRoom].vert++;
         }
 
-        socket.emit('updateScore', scores[sRoom], sRoom);
+        socket.broadcast.emit('updateScore', scores[sRoom], sRoom);
       });
     }
 
