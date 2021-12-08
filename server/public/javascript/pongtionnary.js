@@ -118,6 +118,8 @@ function create()
       self.greenScoreText.setText("0");
       self.yellowScoreText.setText("0");
     }
+    console.log(scores);
+    console.log(sRoom);
   });
 
   this.socket.on('inputPlayer', function(player)
