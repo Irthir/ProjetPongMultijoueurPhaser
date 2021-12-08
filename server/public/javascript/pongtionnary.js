@@ -111,6 +111,13 @@ function create()
       self.greenScoreText.setText(scores.vert);
       self.yellowScoreText.setText(scores.jaune);
     }
+    else
+    {
+      self.blueScoreText.setText("0");
+      self.redScoreText.setText("0");
+      self.greenScoreText.setText("0");
+      self.yellowScoreText.setText("0");
+    }
   });
 
   this.socket.on('inputPlayer', function(player)

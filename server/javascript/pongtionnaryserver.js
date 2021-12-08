@@ -154,6 +154,19 @@ function create()
     socket.on('disconnect', function()
     {
       console.log("User disconnected");
+
+      if (players[socket.id]!=null)
+      {
+        players[socket.id].draw.forEach(element =>
+        {
+          element.destroy(true);  
+        });
+        players[socket.id].draw=[];
+        players[socket.id].path = null;
+      
+        io.emit('destroyPath', socket.id);
+      }
+
       // remove player from server
       removePlayer(self, socket.id);
       // remove this player from our players object
