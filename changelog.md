@@ -1,3 +1,9 @@
+## [0.0.9] - 2021-12-08
+### Ajout
+-Mise en place du score.
+### Tests du projet
+-Le jeu est fun, mais le lag est à corriger.
+
 ## [0.0.8] - 2021-12-07
 ### Ajout
 -Mise en place de l'affichage des dessins chez tout le monde

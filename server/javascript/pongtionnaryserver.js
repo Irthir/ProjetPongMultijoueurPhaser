@@ -240,23 +240,25 @@ function removePlayer(self, playerId)
 
 function handlePlayerInput(self, playerId, input)
 {
-  self.players.getChildren().forEach((player) =>
-  {
-    if (playerId === player.playerId)
-    {
-      players[player.playerId].path = input;
+  
+      players[playerId].path = input;
       
-      io.emit('inputPlayer', players[player.playerId]);
+      io.emit('inputPlayer', players[playerId]);
 
-      if (Array.isArray(player.draw))
+      if (Array.isArray(players[playerId].draw))
       {
-        player.draw.forEach(element =>{
+        players[playerId].draw.forEach(element =>{
           element.destroy();
         });
       }
 
       //console.log(input.curves.length);
-      players[player.playerId].path.curves.forEach(element =>
+      players[playerId].draw.forEach(element =>
+      {
+        element.destroy(true);  
+      });
+      players[playerId].draw = [];
+      players[playerId].path.curves.forEach(element =>
       {
         //console.log("x "+element.points[0]+" y "+element.points[1]);
         pathling = self.physics.add.sprite(
@@ -264,12 +266,10 @@ function handlePlayerInput(self, playerId, input)
           'Path');
         pathling.setCollideWorldBounds(true);
         pathling.setImmovable(true);
-        if (!players[player.playerId].draw)
-          players[player.playerId].draw = [];
-        players[player.playerId].draw.push(pathling);
-        pathling.name = player.playerId;
+        players[playerId].draw.push(pathling);
+        pathling.name = playerId;
 
-        self.physics.add.collider(balls[players[player.playerId].room], pathling, function(ball,pathling)
+        self.physics.add.collider(balls[players[playerId].room], pathling, function(ball,pathling)
         {
           if (players[pathling.name]!=null)
           {
@@ -284,8 +284,7 @@ function handlePlayerInput(self, playerId, input)
           }
         });
       });
-    }
-  });
+
 }
 
 function randomPosition(max)
