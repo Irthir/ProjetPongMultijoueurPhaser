@@ -149,7 +149,7 @@ function create()
     }
 
     // send the current scores
-    socket.emit('updateScore', scores, sRoom);
+    socket.emit('updateScore', scores[sRoom], sRoom);
 
     socket.on('disconnect', function()
     {
